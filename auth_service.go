@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"net/http"
+	"os"
 	"time"
 )
 
@@ -20,7 +21,22 @@ type User struct {
 }
 
 func GetUserByToken(token string) (*User, error) {
-	return nil, nil
+	remote := NewRemote(os.Getenv("GNZ_AUTH_FUNCTION_URL"))
+	userInterface, err := remote.Call("AuthService.userInfo", token)
+	if err != nil {
+		return nil, err
+	}
+	// convert interface to User
+	jsonUser, err := json.Marshal(userInterface)
+	if err != nil {
+		return nil, err
+	}
+	var user User
+	err = json.Unmarshal(jsonUser, &user)
+	if err != nil {
+		return nil, err
+	}
+	return &user, nil
 }
 
 type ReqBody struct {
